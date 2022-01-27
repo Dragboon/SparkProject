@@ -1,6 +1,7 @@
 import org.apache.spark
+import org.apache.spark.sql
 import org.apache.spark.sql.{SparkSession, functions}
-import org.apache.spark.sql.functions.{avg, col, concat, desc, round}
+import org.apache.spark.sql.functions.{avg, col, concat, count, desc, round, sum}
 import org.apache.spark.sql.types.StructType
 
 object ProjetLoL extends App {
@@ -54,7 +55,8 @@ object ProjetLoL extends App {
   val countChamp = participants
     .join(champs,participants("championid")===champs("id"))
     .groupBy("name").count().sort(desc("count"))
-    .show(10,truncate = false)
+    .toDF()
+    .show(200,truncate = false)
 
   println("============Nombre de wins par équipe============")
   val firstKill = teamstats
@@ -71,7 +73,7 @@ object ProjetLoL extends App {
     .show(10,truncate = false)
 
   println("============Moyenne du temps de jeu d'une partie============")
-  matches.select(avg("duration")/60).show()
+  matches.select(round(avg("duration")/60,2)).show()
 
   println("============Répartition des joueurs sur la map============")
   val position = participants
@@ -80,6 +82,28 @@ object ProjetLoL extends App {
     .withColumn("pourcentage",round((col("count")/participants.count())*100))
     .show(truncate = false)
 
+  println("============top 10 Ban champion============")
+  val banChampion = teambans
+    .join(champs,teambans("championid")===champs("id"))
+    .groupBy("name").count().sort(desc("count"))
+    .toDF()
+    .withColumn("pourcentage de ban global",round((col("count")/teambans.count())*100))
+    .withColumn("pourcentage de ban par game",round((col("count")/matches.count())*100))
+    .show(10,truncate = false)
+
+
+  println("============Moyenne des kills par joueur============")
+  val meanKills = stats
+    .select(round(avg("kills"),2))
+    .show(10, truncate = false)
+
+  println("============Top 10 des kills champions ============")
+  val meanKillsChampions = stats
+    .join(participants,participants("id")===stats("id"))
+    .join(champs,participants("championid")===champs("id"))
+    .toDF()
+    .groupBy("name").agg(sum("kills"),count("name"))
+    .show(10,truncate = false)
 
 }
 
