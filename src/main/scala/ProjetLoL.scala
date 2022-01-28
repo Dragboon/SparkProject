@@ -1,8 +1,6 @@
-import org.apache.spark
-import org.apache.spark.sql
 import org.apache.spark.sql.{SparkSession, functions}
 import org.apache.spark.sql.functions.{avg, col, concat, count, desc, round, sum}
-import org.apache.spark.sql.types.StructType
+
 
 object ProjetLoL extends App {
   val spark = SparkSession.builder()
@@ -56,7 +54,7 @@ object ProjetLoL extends App {
     .join(champs,participants("championid")===champs("id"))
     .groupBy("name").count().sort(desc("count"))
     .toDF()
-    .show(200,truncate = false)
+    .show(10,truncate = false)
 
   println("============Nombre de wins par équipe============")
   val firstKill = teamstats
@@ -95,14 +93,20 @@ object ProjetLoL extends App {
   println("============Moyenne des kills par joueur============")
   val meanKills = stats
     .select(round(avg("kills"),2))
-    .show(10, truncate = false)
+    .withColumnRenamed("round(avg(kills), 2)","Moyenne de kill par joueur")
+    .show(truncate = false)
 
   println("============Top 10 des kills champions ============")
   val meanKillsChampions = stats
     .join(participants,participants("id")===stats("id"))
     .join(champs,participants("championid")===champs("id"))
     .toDF()
-    .groupBy("name").agg(sum("kills"),count("name"))
+    .groupBy("name").agg(sum("kills"),sum("quadrakills"),sum("pentakills"),count("name")).sort(desc("sum(kills)"))
+    .withColumn("Moyenne de kill par partie",round((col("sum(kills)")/col("count(name)"))))
+    .withColumnRenamed("sum(quadrakills)","Nombre de quadrakills")
+    .withColumnRenamed("sum(pentakills)","Nombre de pentakills")
+    .withColumnRenamed("sum(kills)","Nombre de kill")
+    .select("name","Nombre de kill","Nombre de quadrakills","Nombre de pentakills","Moyenne de kill par partie")
     .show(10,truncate = false)
 
 }
