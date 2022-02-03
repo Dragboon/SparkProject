@@ -1,12 +1,12 @@
 import org.apache.spark.sql.SparkSession
 
 object DataAccess {
+
   val spark = SparkSession.builder()
     .appName( name ="first sparkAPP")
     .master( master = "local[*]")
     .getOrCreate()
   spark.sparkContext.setLogLevel("ERROR")
-
 
 
   val champs = spark

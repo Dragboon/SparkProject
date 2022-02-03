@@ -1,9 +1,17 @@
 import org.apache.spark.sql
 import org.apache.spark.sql.{SparkSession, functions}
 import org.apache.spark.sql.functions.{avg, col, concat, count, desc, round, sum}
+import scala.io.StdIn.readInt
 
 
 object ProjetLoL {
+
+  val spark = SparkSession.builder()
+    .appName( name ="first sparkAPP")
+    .master( master = "local[*]")
+    .getOrCreate()
+  spark.sparkContext.setLogLevel("ERROR")
+
 
   def countChampion() {
     println("============Top 10 des champions les plus utilisés par les joueurs============")
@@ -83,14 +91,52 @@ object ProjetLoL {
       .show(10, truncate = false)
   }
 
+  def showMenu(){
+    println()
+    println("¸,ø¤º°`°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸")
+    println("1• Les champions les plus utilisés")
+    println("2• Nombre de victoire en fonction de l'équipe")
+    println("3• Les victoires par champion")
+    println("4• La moyenne du temps de jeu par partie")
+    println("5• La répartition des joueurs sur la map")
+    println("6• Les bans champion")
+    println("7• Le nombre de kills par joueur")
+    println("8• Le nombre de kills par champion")
+    println("9• Sortie")
+    println("¸,ø¤º°`°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸")
+    print("Merci d'indiquer l'information à consulter: ")
+  }
+
 
   def main(args: Array[String]): Unit = {
-    println("hello")
-    print(teamsWins())
+    var choice = 0
+
+    println("┈╱╱▏┈┈╱╱╱╱▏╱╱▏┈┈┈")
+    println("┈▇╱▏┈┈▇▇▇╱▏▇╱▏┈┈┈   Bienvenue dans l'analyse")
+    println("┈▇╱▏▁┈▇╱▇╱▏▇╱▏▁┈┈   des parties League Of legends")
+    println("┈▇╱╱╱▏▇╱▇╱▏▇╱╱╱▏┈   Choisissez les informations")
+    println("┈▇▇▇╱┈▇▇▇╱┈▇▇▇╱┈┈   que vous souhaitez consulter")
 
 
+    while(choice !=10) {
+      showMenu()
+      choice = readInt()
 
+      choice match {
+        case 1 => countChampion()
+        case 2 => teamsWins()
+        case 3 => championsWins()
+        case 4 => averageGameTime()
+        case 5 => playerMap()
+        case 6 => banChampion()
+        case 7 => killPlayer()
+        case 8 => killChampion()
+        case 9 => System.exit(0)
+        case _ => println("Merci de saisir une valeur existante")
+      }
+    }
   }
+
 }
 
 
