@@ -2,6 +2,7 @@ import org.apache.spark.sql
 import org.apache.spark.sql.{SparkSession, functions}
 import org.apache.spark.sql.functions.{avg, col, concat, count, desc, round, sum}
 import scala.io.StdIn.readInt
+import scala.io.Source
 
 
 object ProjetLoL {
@@ -14,38 +15,45 @@ object ProjetLoL {
 
 
   def countChampion() {
-    println("============Top 10 des champions les plus utilisés par les joueurs============")
-
+    println("============Top champions les plus utilisés par les joueurs============")
+    print("Merci d'indiquer le nom de champion à afficher: ")
+    var countChamp = readInt()
     DataAccess.participants
       .join(DataAccess.champs, DataAccess.participants("championid") === DataAccess.champs("id"))
       .groupBy("name").count().sort(desc("count"))
       .toDF()
-      .show(10, truncate = false)
+      .withColumnRenamed("name", "Champion")
+      .show(countChamp, truncate = false)
   }
 
   def teamsWins() {
     println("============Nombre de wins par équipe============")
-
     DataAccess.teamstats
       .filter(DataAccess.teamstats("firstblood") === 1)
       .groupBy("teamid").count().sort("count")
+      .withColumnRenamed("teamid", "Team")
       .show(truncate = false)
   }
 
   def championsWins() {
-    println("============Top 10 des champions ayant le plus de win============")
-
+    println("============Top champions ayant le plus de win============")
+    print("Merci d'indiquer le nom de champion à afficher: ")
+    var countChamp = readInt()
     DataAccess.participants
       .join(DataAccess.champs, DataAccess.participants("championid") === DataAccess.champs("id"))
       .join(DataAccess.stats, DataAccess.participants("id") === DataAccess.stats("id"))
       .filter((DataAccess.participants("player") < 6 and DataAccess.stats("win") === 0) or (DataAccess.participants("player") > 5 and DataAccess.stats("win") === 1))
       .groupBy("name").count().sort(desc("count"))
-      .show(10, truncate = false)
+      .withColumnRenamed("name", "Champion")
+      .show(countChamp, truncate = false)
   }
 
   def averageGameTime() {
     println("============Moyenne du temps de jeu d'une partie============")
-    DataAccess.matches.select(round(avg("duration") / 60, 2)).show()
+    DataAccess.matches
+      .select(round(avg("duration") / 60, 2))
+      .withColumnRenamed("round((avg(duration) / 60), 2)", "Moyenne")
+      .show()
   }
 
   def playerMap() {
@@ -53,19 +61,22 @@ object ProjetLoL {
     DataAccess.participants
       .groupBy("position").count().sort(desc("count"))
       .toDF()
-      .withColumn("pourcentage", round((col("count") / DataAccess.participants.count()) * 100))
+      .withColumn("Pourcentage", round((col("count") / DataAccess.participants.count()) * 100))
       .show(truncate = false)
   }
 
   def banChampion() {
-    println("============top 10 Ban champion============")
+    println("============top Ban champion============")
+    print("Merci d'indiquer le nom de champion à afficher: ")
+    var countChamp = readInt()
     DataAccess.teambans
       .join(DataAccess.champs, DataAccess.teambans("championid") === DataAccess.champs("id"))
       .groupBy("name").count().sort(desc("count"))
       .toDF()
-      .withColumn("pourcentage de ban global", round((col("count") / DataAccess.teambans.count()) * 100))
-      .withColumn("pourcentage de ban par game", round((col("count") / DataAccess.matches.count()) * 100))
-      .show(10, truncate = false)
+      .withColumn("Pourcentage de ban global", round((col("count") / DataAccess.teambans.count()) * 100))
+      .withColumn("Pourcentage de ban par game", round((col("count") / DataAccess.matches.count()) * 100))
+      .withColumnRenamed("name", "Champion")
+      .show(countChamp, truncate = false)
   }
 
   def killPlayer() {
@@ -77,49 +88,39 @@ object ProjetLoL {
   }
 
   def killChampion() {
-    println("============Top 10 des kills champions ============")
+    println("============Top des kills champions ============")
+    print("Merci d'indiquer le nom de champion à afficher: ")
+    var countChamp = readInt()
     DataAccess.stats
       .join(DataAccess.participants, DataAccess.participants("id") === DataAccess.stats("id"))
       .join(DataAccess.champs, DataAccess.participants("championid") === DataAccess.champs("id"))
       .toDF()
       .groupBy("name").agg(sum("kills"), sum("quadrakills"), sum("pentakills"), count("name")).sort(desc("sum(kills)"))
       .withColumn("Moyenne de kill par partie", round((col("sum(kills)") / col("count(name)"))))
+      .withColumnRenamed("name", "Champion")
       .withColumnRenamed("sum(quadrakills)", "Nombre de quadrakills")
       .withColumnRenamed("sum(pentakills)", "Nombre de pentakills")
       .withColumnRenamed("sum(kills)", "Nombre de kill")
       .select("name", "Nombre de kill", "Nombre de quadrakills", "Nombre de pentakills", "Moyenne de kill par partie")
-      .show(10, truncate = false)
-  }
-
-  def showMenu(){
-    println()
-    println("¸,ø¤º°`°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸")
-    println("1• Les champions les plus utilisés")
-    println("2• Nombre de victoire en fonction de l'équipe")
-    println("3• Les victoires par champion")
-    println("4• La moyenne du temps de jeu par partie")
-    println("5• La répartition des joueurs sur la map")
-    println("6• Les bans champion")
-    println("7• Le nombre de kills par joueur")
-    println("8• Le nombre de kills par champion")
-    println("9• Sortie")
-    println("¸,ø¤º°`°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸")
-    print("Merci d'indiquer l'information à consulter: ")
+      .show(countChamp, truncate = false)
   }
 
 
   def main(args: Array[String]): Unit = {
     var choice = 0
 
-    println("┈╱╱▏┈┈╱╱╱╱▏╱╱▏┈┈┈")
-    println("┈▇╱▏┈┈▇▇▇╱▏▇╱▏┈┈┈   Bienvenue dans l'analyse")
-    println("┈▇╱▏▁┈▇╱▇╱▏▇╱▏▁┈┈   des parties League Of legends")
-    println("┈▇╱╱╱▏▇╱▇╱▏▇╱╱╱▏┈   Choisissez les informations")
-    println("┈▇▇▇╱┈▇▇▇╱┈▇▇▇╱┈┈   que vous souhaitez consulter")
+    val welcome = "src/main/text/welcome.txt"
+    for (line <- Source.fromFile(welcome).getLines) {
+      println(line)
+    }
 
 
-    while(choice !=10) {
-      showMenu()
+    while(choice !=9){
+      val menu = "src/main/text/menu.txt"
+      for (line <- Source.fromFile(menu).getLines) {
+        println(line)
+      }
+      print("Merci d'indiquer l'information à consulter: ")
       choice = readInt()
 
       choice match {
