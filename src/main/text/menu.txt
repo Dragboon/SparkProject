@@ -1,5 +1,6 @@
 
 ¸,ø¤º°`°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸
+0• Informations principales
 1• Les champions les plus utilisés
 2• Nombre de victoire en fonction de l'équipe
 3• Les victoires par champion
@@ -7,6 +8,6 @@
 5• La répartition des joueurs sur la map
 6• Les bans champion
 7• Moyenne de kills par joueur
-8• Le nombre de kills par champion
+8• Le nombre de kills / mort par champion
 9• Sortie
 ¸,ø¤º°`°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸

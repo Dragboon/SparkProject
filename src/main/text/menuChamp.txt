@@ -1,0 +1,6 @@
+Afficher par odre décroissant en fonction de:
+1• Les kills
+2• Les morts
+3• La moyenne de kills
+4• Les quadrakills
+5• Les pentakills
